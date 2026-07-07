@@ -279,6 +279,16 @@ body.hide-ko .word-card .ko.reveal { filter: none; opacity: 1; }
 .fav-banner .fb-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
 .fav-banner .fb-go { color: var(--gold); font-size: 18px; }
 
+/* 즐겨찾기 화면: 퀴즈 시작 버튼 */
+.fav-quiz-btn {
+  width: 100%; margin: 20px 0 4px; padding: 16px; border: none; cursor: pointer;
+  border-radius: 16px; font-family: inherit; font-weight: 700; font-size: 16px; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  box-shadow: 0 12px 28px -12px var(--primary); transition: transform .12s, box-shadow .2s;
+}
+.fav-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 32px -10px var(--primary); }
+.fav-quiz-btn:active { transform: translateY(0); }
+
 /* 퀴즈 피드백 문구(옵션 아래 가운데) */
 .q-feedback { text-align: center; margin: 16px 0 2px; font-weight: 700; font-size: 15px; }
 .q-hint-key { color: var(--muted); font-size: 13px; align-self: center; }

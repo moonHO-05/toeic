@@ -60,6 +60,7 @@ function render() {
   document.body.classList.toggle('hide-ko', !!state.hideKo);
   if (state.view === 'home') app.innerHTML = viewHome();
   else if (state.view === 'day') app.innerHTML = viewDay();
+  else if (state.view === 'fav') app.innerHTML = viewFav();
   else if (state.view === 'quiz') app.innerHTML = viewQuiz();
   else if (state.view === 'result') app.innerHTML = viewResult();
   wire();
@@ -76,11 +77,11 @@ function viewHome() {
     </button>`).join('');
 
   const favBanner = favN ? `
-    <button class="fav-banner fade-in" data-act="quiz-fav">
+    <button class="fav-banner fade-in" data-act="go-fav">
       <span class="fb-left">
         <span class="fb-star">★</span>
-        <span class="fb-txt"><span class="fb-title">즐겨찾기 복습</span>
-        <span class="fb-sub">별표한 단어 ${favN}개를 모아 퀴즈</span></span>
+        <span class="fb-txt"><span class="fb-title">즐겨찾기</span>
+        <span class="fb-sub">별표한 단어 ${favN}개 · 목록 보기 &amp; 퀴즈</span></span>
       </span>
       <span class="fb-go">▶</span>
     </button>` : '';
@@ -115,6 +116,19 @@ function viewDay() {
     <div class="tab-body fade-in">${tab === 'list' ? viewList(d) : viewSetIntro(d)}</div>`;
 }
 
+// 단어 카드 1개 HTML (목록/즐겨찾기 공용)
+function wordCardHtml(w) {
+  const m = /^(phr|v|n|a|ad|adv|prep|conj|pron|int)\.\s*/i.exec(w.ko);
+  const pos = m ? m[0].trim() : '';
+  const meaning = m ? w.ko.slice(m[0].length) : w.ko;
+  return `
+    <div class="word-card">
+      ${favBtn(w.id)}
+      <div class="en"><span class="idx">${w.n}</span>${esc(w.en)}${pos ? `<span class="pos">${esc(pos)}</span>` : ''}</div>
+      <div class="ko" data-reveal>${esc(meaning)}</div>
+    </div>`;
+}
+
 // 단어 목록
 function viewList(d) {
   const q = (state.search || '').toLowerCase();
@@ -123,17 +137,7 @@ function viewList(d) {
     let words = g.words.filter(w => !q || w.en.toLowerCase().includes(q) || w.ko.toLowerCase().includes(q));
     if (favOnly) words = words.filter(w => isFav(w.id));
     if (!words.length) return '';
-    const cards = words.map(w => {
-      const m = /^(phr|v|n|a|ad|adv|prep|conj|pron|int)\.\s*/i.exec(w.ko);
-      const pos = m ? m[0].trim() : '';
-      const meaning = m ? w.ko.slice(m[0].length) : w.ko;
-      return `
-        <div class="word-card">
-          ${favBtn(w.id)}
-          <div class="en"><span class="idx">${w.n}</span>${esc(w.en)}${pos ? `<span class="pos">${esc(pos)}</span>` : ''}</div>
-          <div class="ko" data-reveal>${esc(meaning)}</div>
-        </div>`;
-    }).join('');
+    const cards = words.map(wordCardHtml).join('');
     return `
       <div class="group-label"><span class="dot"></span><h3>${esc(g.label)}</h3><span class="count">${words.length}개</span></div>
       <div class="word-grid">${cards}</div>`;
@@ -147,6 +151,43 @@ function viewList(d) {
       <button class="btn btn-ghost" data-act="toggle-ko">${state.hideKo ? '👁 뜻 보이기' : '🙈 뜻 가리기'}</button>
     </div>
     ${groupsHtml || `<div class="empty-note">${emptyMsg}</div>`}`;
+}
+
+/* ---------- 6-2. 즐겨찾기 화면 (리스트 + 퀴즈) ---------- */
+// tab-body 내용만(검색 시 이 부분만 다시 그림)
+function favBodyHtml() {
+  const words = favWords();
+  if (!words.length)
+    return `<div class="empty-note">아직 즐겨찾기한 단어가 없어요.<br>단어 목록이나 퀴즈에서 ☆ 를 눌러 담아보세요.</div>`;
+  const q = (state.search || '').toLowerCase();
+  const byDay = {};
+  words.forEach(w => { (byDay[w.day] = byDay[w.day] || []).push(w); });
+  const groupsHtml = Object.keys(byDay).map(Number).sort((a, b) => a - b).map(dn => {
+    const ws = byDay[dn]
+      .filter(w => !q || w.en.toLowerCase().includes(q) || w.ko.toLowerCase().includes(q))
+      .sort((a, b) => a.gi - b.gi || a.n - b.n);
+    if (!ws.length) return '';
+    return `
+      <div class="group-label"><span class="dot"></span><h3>DAY ${dn} · ${esc(DAYS[dn - 1].title)}</h3><span class="count">${ws.length}개</span></div>
+      <div class="word-grid">${ws.map(wordCardHtml).join('')}</div>`;
+  }).join('');
+  return `
+    <div class="list-toolbar">
+      <div class="search">🔎<input id="search" placeholder="즐겨찾기 안에서 검색..." value="${esc(state.search || '')}" /></div>
+      <button class="btn btn-ghost" data-act="toggle-ko">${state.hideKo ? '👁 뜻 보이기' : '🙈 뜻 가리기'}</button>
+    </div>
+    ${groupsHtml || '<div class="empty-note">검색 결과가 없어요.</div>'}`;
+}
+
+function viewFav() {
+  const total = favWords().length;
+  return `
+    <div class="topbar fade-in">
+      <button class="back" data-act="home">←</button>
+      <div class="info"><h2>⭐ 즐겨찾기</h2><div class="sub">별표한 단어 ${total}개</div></div>
+    </div>
+    ${total ? `<button class="fav-quiz-btn fade-in" data-act="quiz-fav">▶ 즐겨찾기 퀴즈 시작 · ${total}문제 랜덤</button>` : ''}
+    <div class="tab-body fade-in">${favBodyHtml()}</div>`;
 }
 
 /* ---------- 7. 퀴즈 세트 선택 ---------- */
@@ -317,7 +358,7 @@ function viewResult() {
       <div class="r-actions">
         <button class="btn btn-primary" data-act="retry">🔁 다시 풀기</button>
         ${hasNext ? `<button class="btn btn-primary" data-act="next-set">▶ 다음 세트</button>` : ''}
-        <button class="btn btn-ghost" data-act="back-intro">${s.day ? '세트 목록' : '홈으로'}</button>
+        <button class="btn btn-ghost" data-act="back-intro">${s.day ? '세트 목록' : '즐겨찾기 목록'}</button>
         <button class="btn btn-ghost" data-act="home">홈으로</button>
       </div>
       ${review}
@@ -353,12 +394,11 @@ function wire() {
 
 // 검색 시 목록만 갱신(입력 포커스 유지)
 function renderListOnly() {
-  const d = DAYS[state.day - 1];
   const body = app.querySelector('.tab-body');
   if (!body) return render();
   const search = app.querySelector('#search');
   const pos = search ? search.selectionStart : null;
-  body.innerHTML = viewList(d);
+  body.innerHTML = state.view === 'fav' ? favBodyHtml() : viewList(DAYS[state.day - 1]);
   wire();
   const s2 = app.querySelector('#search');
   if (s2) { s2.focus(); if (pos != null) s2.setSelectionRange(pos, pos); }
@@ -372,10 +412,11 @@ function handleAct(act) {
     case 'toggle-ko': state.hideKo = !state.hideKo; render(); break;
     case 'toggle-favonly': state.favOnly = !state.favOnly; render(); break;
     case 'quiz-all': startQuiz(state.day, null, d.allWords, '전체 랜덤'); break;
-    case 'quiz-fav': startQuiz(null, null, favWords(), '⭐ 즐겨찾기 복습'); break;
+    case 'go-fav': go({ view: 'fav' }); break;
+    case 'quiz-fav': startQuiz(null, null, favWords(), '⭐ 즐겨찾기'); break;
     case 'prev': prev(); break;
     case 'next': next(); break;
-    case 'back-intro': state.day ? go({ view: 'day', day: state.day, tab: 'quiz' }) : go({ view: 'home' }); break;
+    case 'back-intro': state.day ? go({ view: 'day', day: state.day, tab: 'quiz' }) : go({ view: 'fav' }); break;
     case 'retry':
       if (state.setIdx != null) startQuiz(state.day, state.setIdx, d.sets[state.setIdx], state.label);
       else if (state.day != null) startQuiz(state.day, null, d.allWords, '전체 랜덤');
