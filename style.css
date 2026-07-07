@@ -244,6 +244,49 @@ body.hide-ko .word-card .ko.reveal { filter: none; opacity: 1; }
 
 .empty-note { text-align: center; color: var(--muted); padding: 40px; }
 
+/* ===== 즐겨찾기(★) & 개선 요소 ===== */
+.fav {
+  position: absolute; top: 9px; right: 9px; width: 32px; height: 32px;
+  border: none; background: transparent; cursor: pointer;
+  font-size: 19px; line-height: 1; color: #c4c9dc; z-index: 3;
+  border-radius: 8px; transition: transform .1s, color .15s, background .15s;
+}
+.fav:hover { transform: scale(1.18); background: rgba(0,0,0,.04); }
+.fav.on { color: var(--gold); }
+.word-card { padding-right: 44px; }        /* ★ 버튼 자리 확보 */
+.q-card { position: relative; }
+.q-card .fav { color: #c4c9dc; }
+.review-item { position: relative; padding-right: 46px; }
+.review-item .fav { color: #8a90ad; }
+
+/* 즐겨찾기만 필터 버튼 활성 */
+.btn-ghost.active-ghost { background: rgba(251,191,36,.16); border-color: rgba(251,191,36,.5); color: var(--gold); }
+
+/* 홈: 즐겨찾기 복습 배너 */
+.fav-banner {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; cursor: pointer; color: #fff; text-align: left;
+  background: linear-gradient(135deg, rgba(251,191,36,.16), rgba(124,107,255,.16));
+  border: 1px solid rgba(251,191,36,.35); border-radius: 16px;
+  padding: 16px 20px; margin: 26px 0 6px;
+  transition: transform .15s, border-color .2s;
+}
+.fav-banner:hover { transform: translateY(-2px); border-color: rgba(251,191,36,.6); }
+.fav-banner .fb-left { display: flex; align-items: center; gap: 14px; }
+.fav-banner .fb-star { font-size: 26px; color: var(--gold); }
+.fav-banner .fb-txt { display: flex; flex-direction: column; }
+.fav-banner .fb-title { font-weight: 800; font-size: 16px; }
+.fav-banner .fb-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.fav-banner .fb-go { color: var(--gold); font-size: 18px; }
+
+/* 퀴즈 피드백 문구(옵션 아래 가운데) */
+.q-feedback { text-align: center; margin: 16px 0 2px; font-weight: 700; font-size: 15px; }
+.q-hint-key { color: var(--muted); font-size: 13px; align-self: center; }
+
+/* 비활성 버튼(이전 버튼 등) */
+.btn:disabled { opacity: .4; cursor: default; }
+.btn:disabled:active { transform: none; }
+
 @media (max-width: 560px) {
   #app { padding: 20px 14px 60px; }
   .q-card { padding: 32px 18px; }

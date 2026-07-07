@@ -1,6 +1,6 @@
 /* 서비스워커: 오프라인에서도 앱이 열리도록 파일을 캐시한다.
    파일을 수정하면 아래 CACHE 버전을 올려야 새로 반영됨. */
-const CACHE = 'ets-toeic-v2';
+const CACHE = 'ets-toeic-v3';
 const ASSETS = [
   './', './index.html', './style.css', './sound.js', './app.js', './words.js',
   './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './favicon-32.png'
